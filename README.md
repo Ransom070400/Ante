@@ -5,6 +5,7 @@ colorFrom: purple
 colorTo: gray
 sdk: static
 pinned: false
+short_description: Ask it anything out loud. Its mind runs on 0G Compute.
 tags:
   - reachy_mini
   - reachy_mini_python_app
