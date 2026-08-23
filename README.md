@@ -80,8 +80,11 @@ Both providers need a funded sub-account. Ante uses:
 | Thinking | `glm-5.2` | `0x7DCFe6AEa70350C2090041524c9B4A9262DCe87D` |
 | Hearing | `openai/whisper-large-v3` | `0x36aCffCEa3CCe07cAdd1740Ad992dB16Ab324517` |
 
-A provider with an empty sub-account returns `insufficient balance` at request time even
-though its proxy starts and passes its health check. Fund one with:
+A provider with an empty sub-account returns `insufficient balance` **at request time**,
+even though its proxy starts and passes its health check — a healthy proxy is not proof
+of funding. Providers report this inside the body of an HTTP 200 rather than as an error
+status, so Ante inspects the body and surfaces the refusal as a realtime `error` event
+with the remediation command, instead of letting it read as silence.
 
 ```bash
 0g-compute-cli transfer-fund --provider <address> --amount 1

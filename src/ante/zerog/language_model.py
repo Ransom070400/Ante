@@ -8,6 +8,8 @@ from dataclasses import field, dataclass
 
 import httpx
 
+from ante.zerog.errors import ZeroGRequestError
+
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +91,10 @@ class ZeroGLanguageModel:
             timeout=_REQUEST_TIMEOUT_S,
         ) as response:
             response.raise_for_status()
+            if "text/event-stream" not in response.headers.get("content-type", ""):
+                await response.aread()
+                _raise_for_error_body(response.text)
+
             async for line in response.aiter_lines():
                 delta = _parse_stream_line(line)
                 if delta is None:
@@ -107,6 +113,19 @@ class ZeroGLanguageModel:
 
         turn.tool_calls = [calls_by_index[index] for index in sorted(calls_by_index)]
         yield "done", turn
+
+
+def _raise_for_error_body(body: str) -> None:
+    """Raise when a provider answers a stream request with a refusal instead of events."""
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError:
+        raise ZeroGRequestError(f"0G provider returned an unreadable response: {body[:200]}") from None
+
+    error = payload.get("error") if isinstance(payload, dict) else None
+    if error:
+        message = error.get("message") if isinstance(error, dict) else error
+        raise ZeroGRequestError(str(message))
 
 
 def _parse_stream_line(line: str) -> dict[str, Any] | None:

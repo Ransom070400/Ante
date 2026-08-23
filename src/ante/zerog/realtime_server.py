@@ -25,6 +25,7 @@ from numpy.typing import NDArray
 from websockets.asyncio.server import ServerConnection
 
 from ante.zerog import events
+from ante.zerog.errors import ZeroGRequestError
 from ante.zerog.gateway import ZeroGGateway
 from ante.zerog.providers import LANGUAGE_MODEL, SPEECH_TO_TEXT
 from ante.zerog.antenna_gate import AntennaGate
@@ -199,6 +200,10 @@ class RealtimeSession:
         except asyncio.CancelledError:
             await self.send(events.response_done(response_id, status="cancelled"))
             raise
+        except ZeroGRequestError as exc:
+            logger.error("0G provider refused the request: %s", exc)
+            await self.send(events.error(str(exc), code="provider_refused"))
+            await self.send(events.response_done(response_id, status="failed"))
         except httpx.HTTPError as exc:
             logger.error("0G request failed during turn: %s", exc)
             await self.send(events.error(f"0G request failed: {exc}"))

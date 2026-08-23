@@ -8,6 +8,8 @@ import httpx
 import numpy as np
 from numpy.typing import NDArray
 
+from ante.zerog.errors import ZeroGRequestError
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,22 +27,34 @@ class ZeroGSpeechToText:
         self._client = client
 
     async def transcribe(self, samples: NDArray[np.int16], sample_rate: int) -> str:
-        """Return the transcript for one utterance, or an empty string if it cannot be read."""
+        """Return the transcript for one utterance.
+
+        Raises ZeroGRequestError when the provider refuses the request, so an unfunded
+        sub-account surfaces in the app instead of looking like silence.
+        """
         audio_file = encode_wav(samples, sample_rate)
 
-        try:
-            response = await self._client.post(
-                f"{self.base_url}/audio/transcriptions",
-                files={"file": ("speech.wav", audio_file, "audio/wav")},
-                data={"model": self.model, "language": self.language, "response_format": "json"},
-                timeout=_REQUEST_TIMEOUT_S,
-            )
-            response.raise_for_status()
-        except httpx.HTTPError as exc:
-            logger.error("0G transcription request failed: %s", exc)
-            return ""
+        response = await self._client.post(
+            f"{self.base_url}/audio/transcriptions",
+            files={"file": ("speech.wav", audio_file, "audio/wav")},
+            data={"model": self.model, "language": self.language, "response_format": "json"},
+            timeout=_REQUEST_TIMEOUT_S,
+        )
+        response.raise_for_status()
 
-        return str(response.json().get("text", "")).strip()
+        payload = response.json()
+        raise_for_provider_error(payload)
+        return str(payload.get("text", "")).strip()
+
+
+def raise_for_provider_error(payload: dict[str, object]) -> None:
+    """Raise when a provider reports a refusal in the body of an otherwise successful response."""
+    error = payload.get("error")
+    if not error:
+        return
+
+    message = error.get("message") if isinstance(error, dict) else error
+    raise ZeroGRequestError(str(message))
 
 
 def encode_wav(samples: NDArray[np.int16], sample_rate: int) -> bytes:
