@@ -20,6 +20,28 @@ Forked from the Reachy Mini conversation app. The conversation loop, tool system
 movement manager, personality system and web UI are all inherited unchanged; what is
 new here is the speech backend.
 
+> ### Before you install: you need your own 0G account
+>
+> Ante does not call a hosted service with a shared key. Both its hearing and its
+> thinking are paid for **per request from your own 0G wallet**, so installing the app
+> is not enough on its own — without your own funded account Ante will hear you and then
+> refuse to answer, with `insufficient balance`.
+>
+> You need three things:
+>
+> 1. The 0G CLI, logged in: `npm i -g @0glabs/0g-serving-broker && 0g-compute-cli login`
+> 2. Funds moved from your wallet into the compute ledger: `0g-compute-cli deposit --amount 4`
+> 3. A funded sub-account for **each** of the two providers in the table below:
+>    `0g-compute-cli transfer-fund --provider <address> --amount 2 --service inference`
+>
+> Fund each provider with headroom, not the bare minimum — see
+> [Installation](#installation) for why, and for the local speech-synthesis
+> requirement on the Wireless robot.
+>
+> The trade is a real one: nobody can read your conversations off a provider's logs, and
+> no company can switch the model out from under you. In exchange you top up a wallet
+> and wait about thirteen seconds a turn.
+
 ## How it works
 
 The conversation app is an OpenAI Realtime API client. Ante therefore does not modify

@@ -12,8 +12,40 @@
       <header class="hero">
         <div class="pill">Reachy Mini App</div>
         <h1>Ante</h1>
-        <p class="subtitle">A conversation app for Reachy Mini robot.</p>
+        <p class="subtitle">
+          Ask it anything, out loud. The model doing the thinking runs on the 0G Compute
+          Network — a decentralised inference network, not one company's data centre.
+        </p>
       </header>
+
+      <div class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Read this first</p>
+            <h2>You need your own 0G account</h2>
+          </div>
+        </div>
+        <p class="muted">
+          Ante has no hosted service behind it and no shared API key. Its hearing and its
+          thinking are paid for per request from <strong>your own 0G wallet</strong>, so
+          installing the app is not enough by itself. Without a funded account, Ante will
+          hear you and then decline to answer with <code>insufficient balance</code>.
+        </p>
+        <pre><code>npm i -g @0glabs/0g-serving-broker
+0g-compute-cli login
+0g-compute-cli deposit --amount 4
+
+# a funded sub-account for each of the two providers
+0g-compute-cli transfer-fund --service inference --amount 2 \
+  --provider 0x7DCFe6AEa70350C2090041524c9B4A9262DCe87D   # thinking: glm-5.2
+0g-compute-cli transfer-fund --service inference --amount 2 \
+  --provider 0x36aCffCEa3CCe07cAdd1740Ad992dB16Ab324517   # hearing: whisper-large-v3</code></pre>
+        <p class="muted">
+          Fund each provider with headroom rather than the bare minimum. The required
+          balance is a locked reserve <em>plus</em> unsettled fees, and the reserve
+          cannot be spent from, so funding exactly the minimum buys a single request.
+        </p>
+      </div>
 
       <div class="panel">
         <div class="panel-heading">
@@ -22,20 +54,44 @@
             <h2>Installation</h2>
           </div>
         </div>
-        <p class="muted">Install this app on your Reachy Mini using the app store, or run it locally:</p>
+        <p class="muted">
+          Install from the Reachy Mini app store, or run it locally. Ante needs two
+          processes: the 0G speech backend, and the app itself.
+        </p>
         <pre><code>uv sync
-reachy-mini-daemon --sim  # in another terminal
-python -m ante</code></pre>
+cp .env.example .env
+
+ante-0g-server            # add --push-to-talk for the antenna trigger
+ante                      # in a second terminal</code></pre>
+        <p class="muted">
+          Speech synthesis runs locally, because the 0G network serves chat,
+          transcription, image and video models but no speech synthesis. On the Wireless
+          robot install <a href="https://github.com/rhasspy/piper">Piper</a> and point
+          <code>ANTE_PIPER_VOICE</code> at a voice file; on a Mac the server falls back
+          to the system voice for development.
+        </p>
       </div>
 
       <div class="panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Configuration</p>
-            <h2>OpenAI API Key</h2>
+            <p class="eyebrow">Before you install</p>
+            <h2>What it feels like</h2>
           </div>
         </div>
-        <p class="muted">This app requires an OpenAI API key for voice conversations. Set it via the web interface or environment variable.</p>
+        <p class="muted">
+          A turn takes about <strong>thirteen seconds</strong> from the moment you stop
+          speaking to the moment Ante starts: roughly five seconds to transcribe and
+          eight to reply. That is the network's round-trip rather than thinking time, and
+          the two calls cannot overlap, since there is nothing to think about until the
+          audio has been transcribed. Ante is written to answer briefly partly because of
+          this.
+        </p>
+        <p class="muted">
+          That is the trade. Nobody can read your conversations out of a provider's logs,
+          and no company can swap the model out from under you. In exchange you keep a
+          wallet topped up and you wait a few seconds longer.
+        </p>
       </div>
     </div>
   </body>
