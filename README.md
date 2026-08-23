@@ -87,8 +87,15 @@ status, so Ante inspects the body and surfaces the refusal as a realtime `error`
 with the remediation command, instead of letting it read as silence.
 
 ```bash
-0g-compute-cli transfer-fund --provider <address> --amount 1
+0g-compute-cli transfer-fund --provider <address> --amount 2 --service inference
 ```
+
+**Fund above the minimum reserve, not at it.** The provider requires
+`minimum reserve + unsettled fees`, and the reserve itself is a locked floor you cannot
+spend from. Funding a sub-account with exactly 1.0 0G works for a single request, then
+refuses everything afterwards with `required minimum is 1.003071 0G` — the reserve plus
+the fee that first request just incurred. Give each provider at least 1 0G of headroom
+on top of its reserve.
 
 ## Running
 
