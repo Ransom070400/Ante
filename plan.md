@@ -219,7 +219,28 @@ The installed `reachy-mini` 1.9.0 scaffolder has drifted from the current templa
 
 These are worth reporting upstream; item 1 makes the documented command unusable.
 
-## Outstanding: funding speech-to-text
+## Closed: full speech-to-speech verified on live 0G mainnet
+
+Verified 2026-08-24 once the Whisper sub-account was funded. Two complete turns,
+microphone audio in and synthesized speech out, every stage on the live network:
+
+| Heard (0G whisper-large-v3) | Replied (0G glm-5.2) |
+|---|---|
+| "Hello robot, what is the capital of France?" | "Paris." |
+| "what are you actually running on, and keep it brief." | "A model called GLM, served over the 0G Compute Network. No single company owns the machine that's thinking right now." |
+
+**Measured turn latency: ~13 s** from end of speech to first audio — about 5 s for
+transcription and 8 s for the reply. The two calls are inherently serial. This is the
+providers' fixed round-trip, not generation speed.
+
+**Funding gotcha found in the process**: a provider requires
+`minimum reserve + unsettled fees`, and the reserve is a locked floor that cannot be
+spent from. Funding a sub-account with exactly 1.0 0G bought exactly one request, then
+refused everything after with `required minimum is 1.003071 0G`. Fund with headroom
+above the reserve. The proxy auto-funds the difference once the ledger can cover it, but
+only picks up a new balance on restart.
+
+## Superseded: funding speech-to-text
 
 Transcription is the one thing not yet exercised end to end. Provider
 `0x36aCff…` requires **1.0 0G locked** in its sub-account and currently holds zero;

@@ -134,9 +134,12 @@ set off by a television in the background. Reading one REST value cannot.
 
 ## Known characteristics
 
-- **A turn takes roughly seven seconds before Ante starts speaking.** This is the
-  0G providers' fixed round-trip, not generation speed: measured time-to-first-token and
-  total time are within 0.1 s of each other, so the response arrives in one burst.
+- **A turn takes about thirteen seconds end to end**, measured from the moment you stop
+  speaking to the moment Ante starts. It splits roughly 5 s for transcription and 8 s for
+  the reply. This is the providers' fixed round-trip rather than generation speed:
+  time-to-first-token and total time are within 0.1 s of each other, so a response
+  arrives in one burst and streaming buys nothing. The two calls are inherently serial,
+  since there is nothing to think about until the audio has been transcribed.
   Ante's personality is written for short answers partly for this reason.
 - **`glm-5.2` is a reasoning model.** Ante sends `enable_thinking: false`, without which
   roughly a hundred tokens and several seconds go to hidden reasoning every turn.
