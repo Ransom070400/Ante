@@ -10,7 +10,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 2000) {
   }
 }
 
-async function waitForStatus(timeoutMs = 15000) {
+async function fetchStatus(timeoutMs = 15000) {
   const loadingText = document.querySelector("#loading p");
   let attempts = 0;
   const deadline = Date.now() + timeoutMs;
@@ -30,107 +30,70 @@ async function waitForStatus(timeoutMs = 15000) {
   }
 }
 
-async function validateKey(key) {
-  const body = { openai_api_key: key };
-  const resp = await fetch("/validate_api_key", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) {
-    throw new Error(data.error || "validation_failed");
-  }
-  return data;
-}
-
-async function saveKey(key) {
-  const body = { openai_api_key: key };
-  const resp = await fetch("/openai_api_key", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    throw new Error(data.error || "save_failed");
-  }
-  return await resp.json();
-}
-
 function show(el, flag) {
   el.classList.toggle("hidden", !flag);
 }
 
+// The 0G realtime server is reached over a websocket the app opens itself, so the only
+// truthful thing this page can report is what the app's own status endpoint observes.
+function render(status) {
+  const title = document.getElementById("backend-title");
+  const chip = document.getElementById("backend-chip");
+  const detail = document.getElementById("backend-detail");
+  const endpoint = document.getElementById("backend-endpoint");
+  const help = document.getElementById("help-panel");
+
+  if (!status) {
+    title.textContent = "App not reachable";
+    chip.textContent = "Offline";
+    chip.className = "chip";
+    detail.textContent = "The Ante app is not responding. Start it, then reload this page.";
+    show(help, true);
+    return;
+  }
+
+  const host = status.hf_direct_host;
+  const port = status.hf_direct_port;
+  endpoint.textContent = host ? `Realtime endpoint: ws://${host}:${port}/v1/realtime` : "";
+
+  if (status.backend_connected) {
+    title.textContent = "Connected to 0G";
+    chip.textContent = "Connected";
+    chip.className = "chip chip-ok";
+    detail.textContent = "Ante is listening. Ask it anything.";
+    show(help, false);
+    return;
+  }
+
+  if (!status.has_hf_connection) {
+    title.textContent = "No endpoint configured";
+    chip.textContent = "Setup needed";
+    chip.className = "chip";
+    detail.textContent =
+      "Set HF_REALTIME_CONNECTION_MODE=local and HF_REALTIME_WS_URL in .env, then restart Ante.";
+    show(help, true);
+    return;
+  }
+
+  title.textContent = "Waiting for the 0G server";
+  chip.textContent = status.backend_connection_state || "Disconnected";
+  chip.className = "chip";
+  detail.textContent =
+    status.backend_error || "The endpoint is configured but nothing is answering on it yet.";
+  show(help, true);
+}
+
 async function init() {
   const loading = document.getElementById("loading");
-  const statusEl = document.getElementById("status");
-  const formPanel = document.getElementById("form-panel");
-  const configuredPanel = document.getElementById("configured");
-  const saveBtn = document.getElementById("save-btn");
-  const changeKeyBtn = document.getElementById("change-key-btn");
-  const input = document.getElementById("api-key");
-
   show(loading, true);
-  show(formPanel, false);
-  show(configuredPanel, false);
-
-  const st = (await waitForStatus()) || { has_key: false };
-
-  if (st.has_key) {
-    show(configuredPanel, true);
-  } else {
-    show(formPanel, true);
-  }
+  render(await fetchStatus());
   show(loading, false);
 
-  changeKeyBtn.addEventListener("click", () => {
-    show(configuredPanel, false);
-    show(formPanel, true);
-    input.value = "";
-    statusEl.textContent = "";
-    statusEl.className = "status";
-  });
-
-  input.addEventListener("input", () => {
-    input.classList.remove("error");
-  });
-
-  saveBtn.addEventListener("click", async () => {
-    const key = input.value.trim();
-    if (!key) {
-      statusEl.textContent = "Please enter a valid key.";
-      statusEl.className = "status warn";
-      input.classList.add("error");
-      return;
-    }
-    statusEl.textContent = "Validating API key...";
-    statusEl.className = "status";
-    input.classList.remove("error");
-    try {
-      const validation = await validateKey(key);
-      if (!validation.valid) {
-        statusEl.textContent = "Invalid API key. Please check your key and try again.";
-        statusEl.className = "status error";
-        input.classList.add("error");
-        return;
-      }
-      statusEl.textContent = "Key valid! Saving...";
-      statusEl.className = "status ok";
-      await saveKey(key);
-      statusEl.textContent = "Saved. Reloading…";
-      statusEl.className = "status ok";
-      window.location.reload();
-    } catch (e) {
-      input.classList.add("error");
-      if (e.message === "invalid_api_key") {
-        statusEl.textContent = "Invalid API key. Please check your key and try again.";
-      } else {
-        statusEl.textContent = "Failed to validate/save key. Please try again.";
-      }
-      statusEl.className = "status error";
-    }
-  });
+  // The server is started by hand in a terminal, so poll rather than making the user reload.
+  setInterval(async () => {
+    const status = await fetchStatus(2000);
+    if (status) render(status);
+  }, 5000);
 }
 
 window.addEventListener("DOMContentLoaded", init);

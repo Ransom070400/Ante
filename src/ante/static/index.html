@@ -16,36 +16,60 @@
       <header class="hero">
         <div class="pill">Headless control</div>
         <h1>Ante</h1>
-        <p class="subtitle">Configure your OpenAI API key for the conversation app.</p>
+        <p class="subtitle">
+          Ante has no API key to enter. Its hearing and thinking run on the 0G Compute
+          Network, paid per request from your own wallet.
+        </p>
       </header>
 
-      <div id="configured" class="panel hidden">
+      <div id="backend-panel" class="panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Credentials</p>
-            <h2>API key ready</h2>
+            <p class="eyebrow">Speech backend</p>
+            <h2 id="backend-title">Checking…</h2>
           </div>
-          <span class="chip chip-ok">Connected</span>
+          <span id="backend-chip" class="chip">…</span>
         </div>
-        <p class="muted">OpenAI API key is configured. The conversation app is ready to use.</p>
-        <button id="change-key-btn" class="ghost">Change API key</button>
+        <p id="backend-detail" class="muted">Contacting the 0G realtime server.</p>
+        <p id="backend-endpoint" class="muted"></p>
       </div>
 
-      <div id="form-panel" class="panel hidden">
+      <div id="help-panel" class="panel hidden">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Credentials</p>
-            <h2>Connect OpenAI</h2>
+            <p class="eyebrow">Not connected</p>
+            <h2>Start the 0G server</h2>
           </div>
-          <span class="chip">Required</span>
         </div>
-        <p class="muted">Paste your API key once and we will store it locally for the conversation loop.</p>
-        <label for="api-key">OpenAI API Key</label>
-        <input id="api-key" type="password" placeholder="sk-..." autocomplete="off" />
-        <div class="actions">
-          <button id="save-btn">Save key</button>
-          <p id="status" class="status"></p>
+        <p class="muted">
+          Ante talks to a local server that is backed by 0G. Start it in a terminal, then
+          this page will connect on its own.
+        </p>
+        <pre><code>ante-0g-server            # add --push-to-talk for the antenna trigger</code></pre>
+        <p class="muted">
+          If it starts but Ante still will not answer, the usual cause is an unfunded 0G
+          sub-account. Each provider needs a locked reserve <em>plus</em> spendable
+          headroom, so funding the bare minimum buys a single request.
+        </p>
+        <pre><code>0g-compute-cli get-account</code></pre>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">What runs where</p>
+            <h2>Pipeline</h2>
+          </div>
         </div>
+        <p class="muted">
+          Hearing is <code>openai/whisper-large-v3</code> and thinking is
+          <code>glm-5.2</code>, both on 0G. Speech synthesis is the one local stage,
+          because the network has no speech synthesis provider at all.
+        </p>
+        <p class="muted">
+          A turn takes about thirteen seconds end to end. That is the network's
+          round-trip rather than thinking time.
+        </p>
       </div>
     </div>
 
