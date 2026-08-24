@@ -264,16 +264,32 @@ function buildStatusSection() {
     { class: "settings-status-grid" },
     statusRow("Backend", "Loading…")
   );
+  // Ante's backend is a local server the user starts by hand, so a disconnected
+  // backend is a routine state with a known fix rather than an error to report.
+  const remedy = h(
+    "div",
+    { class: "settings-remedy", hidden: "hidden" },
+    h("p", { class: "settings-hint" }, "Start the 0G speech backend in a terminal, then this reconnects on its own."),
+    h("pre", { class: "settings-command" }, h("code", null, "ante-0g-server")),
+    h(
+      "p",
+      { class: "settings-hint" },
+      "If it is already running, the usual cause is an unfunded 0G sub-account: each provider needs a locked reserve plus spendable headroom."
+    ),
+    h("pre", { class: "settings-command" }, h("code", null, "0g-compute-cli get-account"))
+  );
   const element = h(
     "section",
     { class: "settings-section" },
     h("h2", { class: "settings-section-title" }, "Current state"),
-    list
+    list,
+    remedy
   );
 
   return {
     element,
     render(payload) {
+      remedy.hidden = Boolean(payload.backend_connected);
       list.replaceChildren();
       list.appendChild(statusRow("HF connection", formatHfMode(payload.hf_connection_mode)));
       if (payload.hf_connection_mode === HF_CONNECTION_MODES.LOCAL) {
@@ -312,6 +328,7 @@ function buildStatusSection() {
       }
     },
     renderUnavailable(error) {
+      remedy.hidden = false;
       list.replaceChildren(statusRow("Backend", `Unavailable: ${describeError(error)}`, "warn"));
     },
   };

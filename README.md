@@ -18,8 +18,9 @@ the thinking runs on the **0G Compute Network**, a decentralised inference netwo
 rather than in any one company's data centre.
 
 Forked from the Reachy Mini conversation app. The conversation loop, tool system,
-movement manager, personality system and web UI are all inherited unchanged; what is
-new here is the speech backend.
+movement manager, personality system and the web UI's views are all inherited unchanged;
+what is new here is the speech backend, and the shell and stylesheet those views mount
+into.
 
 > ### Before you install: you need your own 0G account
 >
@@ -185,6 +186,8 @@ failing mid-conversation.
 
 - Personality: `profiles/_ante_locked_profile/profile.md`
 - Tools: one file per tool under `src/ante/tools/`
-- Landing page: `index.html`; app settings page: `src/ante/static/index.html`
+- Landing page: `index.html`
+- App UI: `src/ante/static/` — `index.html` is the shell, `style.css` the design system,
+  and `js/views/` the talk, personality, tools and settings views
 
 The original conversation-app README is in `README_OLD.md`.

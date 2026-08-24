@@ -1,210 +1,1475 @@
+/* Ante app UI. Dark is the brand default; the desktop host can force either theme
+   with ?theme=dark|light, which main.js writes to <html data-theme>. */
+
 :root {
   --bg: #060b1a;
   --bg-2: #071023;
-  --panel: rgba(11, 18, 36, 0.8);
-  --border: rgba(255, 255, 255, 0.08);
+  --surface: rgba(11, 18, 36, 0.82);
+  --surface-2: rgba(255, 255, 255, 0.04);
+  --surface-hover: rgba(255, 255, 255, 0.07);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
   --text: #eaf2ff;
   --muted: #9fb6d7;
+  --accent: #45c4ff;
+  --accent-2: #5ef0c1;
+  --accent-contrast: #041020;
   --ok: #4ce0b3;
   --warn: #ffb547;
   --error: #ff5c70;
-  --accent: #45c4ff;
-  --accent-2: #5ef0c1;
-  --shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+  --elevated: #0b1326;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.3);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --bar-h: 60px;
+  --glow-veil: rgba(69, 196, 255, 0.16);
+  --glow-veil-2: rgba(94, 240, 193, 0.14);
+  color-scheme: dark;
 }
 
-* { box-sizing: border-box; }
+/* Light palette, duplicated so an explicit choice beats the system preference. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #eef2f9;
+    --bg-2: #e4ebf6;
+    --surface: rgba(255, 255, 255, 0.92);
+    --surface-2: rgba(13, 23, 48, 0.04);
+    --surface-hover: rgba(13, 23, 48, 0.07);
+    --border: rgba(13, 23, 48, 0.12);
+    --border-strong: rgba(13, 23, 48, 0.26);
+    --text: #0d1730;
+    --muted: #566b8c;
+    --accent: #0b7fc4;
+    --accent-2: #0a9a76;
+    --accent-contrast: #ffffff;
+    --ok: #0a9a76;
+    --warn: #b06a00;
+    --error: #c92a41;
+    --elevated: #ffffff;
+    --shadow: 0 18px 44px rgba(13, 23, 48, 0.12);
+    --shadow-sm: 0 6px 16px rgba(13, 23, 48, 0.08);
+    --glow-veil: rgba(11, 127, 196, 0.12);
+    --glow-veil-2: rgba(10, 154, 118, 0.1);
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #eef2f9;
+  --bg-2: #e4ebf6;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-2: rgba(13, 23, 48, 0.04);
+  --surface-hover: rgba(13, 23, 48, 0.07);
+  --border: rgba(13, 23, 48, 0.12);
+  --border-strong: rgba(13, 23, 48, 0.26);
+  --text: #0d1730;
+  --muted: #566b8c;
+  --accent: #0b7fc4;
+  --accent-2: #0a9a76;
+  --accent-contrast: #ffffff;
+  --ok: #0a9a76;
+  --warn: #b06a00;
+  --error: #c92a41;
+  --elevated: #ffffff;
+  --shadow: 0 18px 44px rgba(13, 23, 48, 0.12);
+  --shadow-sm: 0 6px 16px rgba(13, 23, 48, 0.08);
+  --glow-veil: rgba(11, 127, 196, 0.12);
+  --glow-veil-2: rgba(10, 154, 118, 0.1);
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Space Grotesk", "Inter", "Segoe UI", sans-serif;
-  background: radial-gradient(circle at 20% 20%, rgba(69, 196, 255, 0.16), transparent 35%),
-              radial-gradient(circle at 80% 0%, rgba(94, 240, 193, 0.16), transparent 32%),
-              linear-gradient(135deg, var(--bg), var(--bg-2));
+  font-family: "Space Grotesk", "Inter", -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--text);
+  background:
+    radial-gradient(circle at 18% 12%, var(--glow-veil), transparent 38%),
+    radial-gradient(circle at 82% 0%, var(--glow-veil-2), transparent 34%),
+    linear-gradient(150deg, var(--bg), var(--bg-2));
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
 }
 
-.ambient {
-  position: fixed;
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------------- app shell */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--bar-h));
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 16px 28px;
+}
+
+.app-shell__bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-shell__bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--bar-h);
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.app-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.app-shell__brand-mark {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 10px;
+  background: linear-gradient(140deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 18px -4px var(--accent);
+}
+
+.app-shell__brand-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.app-shell__brand-name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.app-shell__brand-sub {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+}
+
+.app-shell__nav {
+  display: flex;
+  gap: 6px;
+}
+
+.app-shell__icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.app-shell__icon-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+.app-shell__icon-btn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.app-shell__icon-btn.is-active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.app-shell__back[hidden] {
+  display: none;
+}
+
+/* Personality badge: shown on the talk view only, hidden elsewhere by main.js. */
+.app-shell__personality-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0 2px;
+}
+
+.app-shell__personality-row[hidden] {
+  display: none;
+}
+
+.app-shell__personality {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px 8px 8px;
+  color: inherit;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.app-shell__personality:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.app-shell__personality-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.app-shell__personality-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.app-shell__personality-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.app-shell__personality-label {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.app-shell__personality-name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.app-shell__personality-chevron {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.app-shell__default-action {
+  flex: none;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.app-shell__default-action:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.app-shell__default-action:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.app-shell__default-action[hidden] {
+  display: none;
+}
+
+.app-shell__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding-top: 12px;
+}
+
+/* ------------------------------------------------------- views and controls */
+
+.view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 18px;
+  animation: view-in 0.22s ease-out;
+}
+
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.view-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.view-title {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+.view-subtitle {
+  margin: 0;
+  color: var(--muted);
+}
+
+.view-status {
+  margin: 0;
+  min-height: 20px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.view-status.is-warning {
+  color: var(--warn);
+}
+
+.view-status.is-error {
+  color: var(--error);
+}
+
+.view-error,
+.route-error {
+  padding: 16px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--error) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--error) 34%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.view-error p {
+  margin: 0 0 4px;
+}
+
+.view-error p:last-child {
+  margin: 0;
+}
+
+.btn {
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  color: var(--accent-contrast);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.btn--primary:disabled {
+  color: var(--muted);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.btn--primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+}
+
+.btn--ghost {
+  background: transparent;
+}
+
+.btn--danger {
+  color: #fff;
+  background: var(--error);
+  border-color: transparent;
+}
+
+.btn--danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+  background: var(--error);
+  border-color: transparent;
+}
+
+/* ------------------------------------------------------------- talk + orb */
+
+.view--talk {
+  justify-content: center;
+  gap: 26px;
+  padding-bottom: 8vh;
+}
+
+.talk__orb-wrap {
+  display: grid;
+  place-items: center;
+}
+
+.talk__caption {
+  margin: 0;
+  min-height: 24px;
+  font-size: 15px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* The orb is the mic toggle. --glow is set per state from constants.js. */
+.convo-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(190px, 52vw, 250px);
+  aspect-ratio: 1;
+  padding: 0;
+  color: var(--glow, var(--accent));
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.convo-orb:disabled {
+  cursor: default;
+}
+
+.convo-orb__glow,
+.convo-orb__ring,
+.convo-orb__ring-outer {
+  position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 30% 60%, rgba(255, 255, 255, 0.05), transparent 35%),
-              radial-gradient(circle at 75% 30%, rgba(69, 196, 255, 0.08), transparent 32%);
-  filter: blur(60px);
-  z-index: 0;
+  border-radius: 50%;
   pointer-events: none;
 }
 
-.loading {
-  position: fixed;
-  inset: 0;
-  background: rgba(5, 10, 24, 0.92);
-  backdrop-filter: blur(4px);
+.convo-orb__glow {
+  inset: -14%;
+  background: radial-gradient(circle, var(--glow) 0%, transparent 62%);
+  opacity: 0.28;
+  filter: blur(22px);
+  transition: opacity 0.4s ease;
+}
+
+.convo-orb__ring {
+  border: 1px solid color-mix(in srgb, var(--glow) 42%, transparent);
+}
+
+.convo-orb__ring-outer {
+  inset: -9%;
+  border: 1px solid color-mix(in srgb, var(--glow) 20%, transparent);
+}
+
+.convo-orb__core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--glow) 26%, transparent), transparent 58%),
+    var(--surface);
+  border: 1px solid color-mix(in srgb, var(--glow) 34%, transparent);
+  box-shadow: var(--shadow), inset 0 0 30px -12px var(--glow);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+/* Indicators share one grid cell; the active state fades its own in. */
+.convo-orb__indicator {
+  display: grid;
+  place-items: center;
+}
+
+.ind {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  color: var(--glow);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.ind svg {
+  width: 34px;
+  height: 34px;
+}
+
+.convo-orb[data-state="idle"] .ind-mic,
+.convo-orb[data-state="muted"] .ind-mic-off,
+.convo-orb[data-state="connecting"] .ind-spinner,
+.convo-orb[data-state="listening"] .ind-bars,
+.convo-orb[data-state="thinking"] .ind-thinking,
+.convo-orb[data-state="speaking"] .ind-voice,
+.convo-orb[data-state="error"] .ind-error {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Per-state emphasis */
+.convo-orb[data-state="muted"] .convo-orb__glow {
+  opacity: 0.12;
+}
+
+.convo-orb[data-state="idle"] .convo-orb__glow {
+  animation: orb-breathe 4s ease-in-out infinite;
+}
+
+.convo-orb[data-state="listening"] .convo-orb__glow,
+.convo-orb[data-state="speaking"] .convo-orb__glow {
+  opacity: 0.5;
+}
+
+.convo-orb[data-state="listening"] .convo-orb__ring-outer,
+.convo-orb[data-state="speaking"] .convo-orb__ring-outer {
+  animation: orb-pulse 1.8s ease-out infinite;
+}
+
+.convo-orb[data-state="thinking"] .convo-orb__ring {
+  animation: orb-spin 2.6s linear infinite;
+  border-style: dashed;
+}
+
+.convo-orb:hover:not(:disabled) .convo-orb__core {
+  transform: scale(1.02);
+}
+
+.convo-orb:active:not(:disabled) .convo-orb__core {
+  transform: scale(0.97);
+}
+
+/* Connecting: rotating arc */
+.ind-spinner {
+  width: 30px;
+  height: 30px;
+  border: 2.5px solid color-mix(in srgb, var(--glow) 25%, transparent);
+  border-top-color: var(--glow);
+  border-radius: 50%;
+  animation: orb-spin 0.9s linear infinite;
+}
+
+/* Listening: level meter */
+.ind-bars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+}
+
+.ind-bars .bar {
+  width: 4px;
+  height: 30%;
+  background: var(--glow);
+  border-radius: 999px;
+  animation: bar-bounce 1s ease-in-out infinite;
+}
+
+.ind-bars .bar:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.ind-bars .bar:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.ind-bars .bar:nth-child(4) {
+  animation-delay: 0.36s;
+}
+.ind-bars .bar:nth-child(5) {
+  animation-delay: 0.48s;
+}
+
+/* Thinking: three dots */
+.ind-thinking {
+  display: flex;
+  gap: 7px;
+}
+
+.ind-thinking .dot {
+  width: 8px;
+  height: 8px;
+  background: var(--glow);
+  border-radius: 50%;
+  animation: dot-fade 1.3s ease-in-out infinite;
+}
+
+.ind-thinking .dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.ind-thinking .dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+/* Speaking: waves radiating from the speaker glyph */
+.ind-voice .wave {
+  animation: wave-fade 1.4s ease-in-out infinite;
+}
+
+.ind-voice .wave-2 {
+  animation-delay: 0.25s;
+}
+
+@keyframes orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 0.42;
+  }
+}
+
+@keyframes orb-pulse {
+  0% {
+    transform: scale(0.94);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.14);
+    opacity: 0;
+  }
+}
+
+@keyframes bar-bounce {
+  0%,
+  100% {
+    height: 26%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+
+@keyframes dot-fade {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes wave-fade {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------- personality cards */
+
+.personality-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 12px;
+}
+
+.personality-card-slot {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.16s, transform 0.16s;
 }
-.loading .spinner {
-  width: 46px;
-  height: 46px;
-  border: 4px solid rgba(255,255,255,0.15);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 12px;
-}
-.loading p { color: var(--muted); margin: 0; letter-spacing: 0.4px; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-.container {
+.personality-card-slot:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.personality-card-slot.is-active {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: var(--shadow-sm), 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.personality-card {
   position: relative;
-  max-width: 600px;
-  margin: 10vh auto;
-  padding: 0 24px 40px;
-  z-index: 1;
-}
-
-.hero {
-  margin-bottom: 24px;
-}
-.hero h1 {
-  margin: 6px 0 6px;
-  font-size: 32px;
-  letter-spacing: -0.4px;
-}
-.subtitle {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.5;
-}
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(94, 240, 193, 0.1);
-  color: var(--accent-2);
-  font-size: 12px;
-  letter-spacing: 0.3px;
-  border: 1px solid rgba(94, 240, 193, 0.25);
-}
-
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 18px 16px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
-  margin-top: 16px;
-}
-.panel-heading {
   display: flex;
+  flex: 1;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.panel-heading h2 {
-  margin: 2px 0;
-  font-size: 22px;
-}
-.eyebrow {
-  margin: 0;
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-}
-.muted { color: var(--muted); }
-.chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--border);
-}
-.chip-ok {
-  background: rgba(76, 224, 179, 0.15);
-  color: var(--ok);
-  border-color: rgba(76, 224, 179, 0.4);
+  gap: 10px;
+  padding: 18px 12px 16px;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
 }
 
-.hidden { display: none; }
-label {
-  display: block;
-  margin: 8px 0 6px;
+.personality-card.is-disabled,
+.personality-card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.personality-card__avatar {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.personality-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* No dedicated artwork for this profile: mute the stand-in so it reads as generic. */
+.personality-card__avatar img.personality-card__avatar--fallback {
+  opacity: 0.5;
+  filter: grayscale(0.65);
+}
+
+.personality-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.personality-card__hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.personality-card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--accent-contrast);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-radius: 50%;
+}
+
+.personality-card__badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.personality-card--custom {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: transparent;
+}
+
+.personality-card__plus {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-radius: 50%;
+}
+
+/* Overlay actions sit above the card button, which fills the slot. */
+.personality-card__edit,
+.personality-card__delete {
+  position: absolute;
+  top: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.personality-card__edit {
+  right: 8px;
+}
+
+.personality-card__delete {
+  right: 42px;
+}
+
+.personality-card__edit svg,
+.personality-card__delete svg {
+  width: 14px;
+  height: 14px;
+}
+
+.personality-card-slot:hover .personality-card__edit,
+.personality-card-slot:hover .personality-card__delete,
+.personality-card__edit:focus-visible,
+.personality-card__delete:focus-visible {
+  opacity: 1;
+}
+
+.personality-card__edit:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.personality-card__delete:hover {
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 45%, transparent);
+}
+
+.personality-card__tools {
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 0;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.personality-card__tools:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--surface-hover);
+}
+
+/* Touch devices have no hover, so the overlay actions stay visible. */
+@media (hover: none) {
+  .personality-card__edit,
+  .personality-card__delete {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------ settings and tools */
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-section-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.settings-section-intro {
+  margin-top: -4px;
+}
+
+.settings-list-title {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.settings-field-row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 12px;
+}
+
+.settings-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.settings-input,
+.settings-select {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s;
+}
+
+.settings-input:hover:not(:disabled),
+.settings-select:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.settings-input:focus,
+.settings-select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.settings-input:disabled,
+.settings-select:disabled {
+  opacity: 0.5;
+}
+
+.settings-hint {
+  margin: 0;
   font-size: 13px;
   color: var(--muted);
-  letter-spacing: 0.2px;
-}
-input[type="password"],
-input[type="text"] {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text);
-  transition: border 0.15s ease, box-shadow 0.15s ease;
-}
-input:focus {
-  border-color: rgba(94, 240, 193, 0.7);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(94, 240, 193, 0.15);
-}
-input.error {
-  border-color: var(--error);
-  box-shadow: 0 0 0 3px rgba(255, 92, 112, 0.15);
 }
 
-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 12px;
-  padding: 11px 16px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(120deg, var(--accent), var(--accent-2));
-  color: #031022;
-  cursor: pointer;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  box-shadow: 0 14px 40px rgba(69, 196, 255, 0.25);
-  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+.settings-status {
+  margin: 0;
+  min-height: 18px;
+  font-size: 13px;
+  color: var(--muted);
 }
-button:hover { filter: brightness(1.06); transform: translateY(-1px); }
-button:active { transform: translateY(0); }
-button.ghost {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
-  box-shadow: none;
-  border: 1px solid var(--border);
+
+.settings-status.is-error {
+  color: var(--error);
 }
-button.ghost:hover { border-color: rgba(94, 240, 193, 0.4); }
-.actions {
+
+.settings-actions {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  gap: 8px;
+  justify-content: flex-end;
   flex-wrap: wrap;
 }
-.status {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-.status.ok { color: var(--ok); }
-.status.warn { color: var(--warn); }
-.status.error { color: var(--error); }
 
-@media (max-width: 760px) {
-  .hero h1 { font-size: 26px; }
-  button { width: 100%; justify-content: center; }
-  .actions { flex-direction: column; align-items: flex-start; }
+.settings-pill {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.settings-pill.is-active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+/* Current state */
+.settings-status-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+}
+
+.settings-status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-status-row:last-child {
+  border-bottom: 0;
+}
+
+.settings-status-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.settings-status-value {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.settings-status-row.is-ok .settings-status-value {
+  color: var(--ok);
+}
+
+.settings-status-row.is-warn .settings-status-value {
+  color: var(--warn);
+}
+
+/* Tool access */
+.settings-toolset-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.settings-toolset-summary-copy {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+  line-height: 1.3;
+}
+
+.settings-toolset-mode {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.settings-toolset-actions {
+  margin-top: 2px;
+}
+
+.settings-tool-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-tool-group {
+  margin: 0;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.settings-tool-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.settings-tool-group-count {
+  padding: 1px 7px;
+  font-size: 11px;
+  letter-spacing: 0;
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+
+.settings-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.settings-tool-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.settings-tool-choice:hover {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.settings-tool-choice input {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+  cursor: inherit;
+}
+
+.settings-tool-choice.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-tool-choice.is-unavailable {
+  border-color: color-mix(in srgb, var(--warn) 34%, transparent);
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+}
+
+.settings-tool-choice-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-tool-choice-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.settings-tool-choice-id {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.settings-tool-choice-description {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* Tool Spaces */
+.settings-tool-space-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-tool-space-controls .settings-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-tool-spaces {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-tool-space {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.settings-tool-space-summary {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-right: auto;
+  line-height: 1.35;
+}
+
+.settings-tool-space-name {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.settings-tool-space-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------------- modals */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: color-mix(in srgb, #01050f 62%, transparent);
+  backdrop-filter: blur(4px);
+  animation: overlay-in 0.16s ease-out;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(520px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 22px;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: modal-in 0.18s ease-out;
+}
+
+.modal--confirm {
+  width: min(400px, 100%);
+  gap: 12px;
+}
+
+.modal__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.modal__subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.modal__input,
+.modal__textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.modal__input:focus,
+.modal__textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.modal__input.is-readonly {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.modal__textarea {
+  min-height: 84px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.modal__error {
+  display: none;
+  margin: 0;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--error);
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 34%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.modal__error.is-visible {
+  display: block;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 420px) {
+  .view-title {
+    font-size: 22px;
+  }
+
+  .personality-grid {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  }
+
+  .settings-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell__brand-sub {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The scrolling views end flush against the viewport edge without this. */
+.view--home,
+.view--settings,
+.view--tools {
+  padding-bottom: 20px;
+}
+
+/* Shown only while the 0G backend is unreachable: what to run to bring it up. */
+.settings-remedy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.settings-remedy[hidden] {
+  display: none;
+}
+
+.settings-command {
+  margin: 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.settings-command code {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 13px;
+  color: var(--accent);
+  white-space: pre;
 }

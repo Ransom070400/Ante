@@ -3,76 +3,81 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ante – Settings</title>
+    <title>Ante</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
-    <div class="ambient"></div>
-    <div id="loading" class="loading">
-      <div class="spinner"></div>
-      <p>Loading…</p>
+    <header class="app-shell__bar">
+      <div class="app-shell__bar-inner">
+        <button
+          type="button"
+          class="app-shell__icon-btn app-shell__back"
+          data-action="go-back"
+          aria-label="Back to conversation"
+          hidden
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+
+        <a class="app-shell__brand" href="#/" data-action="go-home">
+          <span class="app-shell__brand-mark" aria-hidden="true"></span>
+          <span class="app-shell__brand-copy">
+            <span class="app-shell__brand-name">Ante</span>
+            <span class="app-shell__brand-sub">Thinking on 0G</span>
+          </span>
+        </a>
+
+        <nav class="app-shell__nav" aria-label="Sections">
+          <button type="button" class="app-shell__icon-btn" data-action="open-tools" aria-label="Open tools">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14.7 6.3a4 4 0 0 0 5 5l-9.4 9.4a2.8 2.8 0 0 1-4-4Z" />
+              <path d="m18 2 4 4-2.3 2.3-4-4Z" />
+            </svg>
+          </button>
+          <button type="button" class="app-shell__icon-btn" data-action="open-settings" aria-label="Open settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9h-.2a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.4-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2v-.2a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1.1Z" />
+            </svg>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <div class="app-shell">
+      <div class="app-shell__personality-row" data-component="personality-row" hidden>
+        <button
+          type="button"
+          class="app-shell__personality"
+          data-component="personality-badge"
+          data-action="open-personalities"
+        >
+          <span class="app-shell__personality-avatar">
+            <img src="/static/avatars/default.svg" alt="" aria-hidden="true" />
+          </span>
+          <span class="app-shell__personality-copy">
+            <span class="app-shell__personality-label">Personality</span>
+            <span class="app-shell__personality-name">Default</span>
+          </span>
+          <svg class="app-shell__personality-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="app-shell__default-action"
+          data-component="default-personality-action"
+          hidden
+        >
+          Set as default
+        </button>
+      </div>
+
+      <main class="app-shell__main" id="view-outlet"></main>
     </div>
-    <div class="container">
-      <header class="hero">
-        <div class="pill">Headless control</div>
-        <h1>Ante</h1>
-        <p class="subtitle">
-          Ante has no API key to enter. Its hearing and thinking run on the 0G Compute
-          Network, paid per request from your own wallet.
-        </p>
-      </header>
 
-      <div id="backend-panel" class="panel">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Speech backend</p>
-            <h2 id="backend-title">Checking…</h2>
-          </div>
-          <span id="backend-chip" class="chip">…</span>
-        </div>
-        <p id="backend-detail" class="muted">Contacting the 0G realtime server.</p>
-        <p id="backend-endpoint" class="muted"></p>
-      </div>
-
-      <div id="help-panel" class="panel hidden">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Not connected</p>
-            <h2>Start the 0G server</h2>
-          </div>
-        </div>
-        <p class="muted">
-          Ante talks to a local server that is backed by 0G. Start it in a terminal, then
-          this page will connect on its own.
-        </p>
-        <pre><code>ante-0g-server            # add --push-to-talk for the antenna trigger</code></pre>
-        <p class="muted">
-          If it starts but Ante still will not answer, the usual cause is an unfunded 0G
-          sub-account. Each provider needs a locked reserve <em>plus</em> spendable
-          headroom, so funding the bare minimum buys a single request.
-        </p>
-        <pre><code>0g-compute-cli get-account</code></pre>
-      </div>
-
-      <div class="panel">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">What runs where</p>
-            <h2>Pipeline</h2>
-          </div>
-        </div>
-        <p class="muted">
-          Hearing is <code>openai/whisper-large-v3</code> and thinking is
-          <code>glm-5.2</code>, both on 0G. Speech synthesis is the one local stage,
-          because the network has no speech synthesis provider at all.
-        </p>
-        <p class="muted">
-          A turn takes about thirteen seconds end to end. That is the network's
-          round-trip rather than thinking time.
-        </p>
-      </div>
-    </div>
-
-    <script src="/static/main.js"></script>
+    <script type="module" src="/static/js/main.js"></script>
   </body>
 </html>
