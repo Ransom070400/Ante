@@ -3,10 +3,12 @@
 from __future__ import annotations
 import sys
 import time
+import socket
 import asyncio
 import logging
 import argparse
 import threading
+import subprocess
 from typing import TYPE_CHECKING, Any, Optional
 from pathlib import Path
 from collections.abc import Callable, Awaitable
@@ -61,6 +63,54 @@ def _start_inactivity_timeout_thread(
     return thread
 
 
+def _is_local_realtime_host(host: str | None) -> bool:
+    """Return whether a realtime host is local to the app process."""
+    return host in {"127.0.0.1", "localhost", "::1"}
+
+
+def _is_port_open(host: str, port: int) -> bool:
+    """Return whether a TCP listener is already available."""
+    try:
+        with socket.create_connection((host, port), timeout=0.5):
+            return True
+    except OSError:
+        return False
+
+
+def _start_controller_zero_g_backend(
+    host: str | None,
+    port: int | None,
+    language: str,
+    daemon_url: str,
+    logger: logging.Logger,
+) -> subprocess.Popen[bytes] | None:
+    """Start the local 0G realtime backend for app-controller launches."""
+    if host is None or not _is_local_realtime_host(host) or port is None:
+        return None
+
+    if _is_port_open(host, port):
+        logger.info("Reusing 0G realtime backend on %s:%d", host, port)
+        return None
+
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "ante.zerog",
+            "--host",
+            host,
+            "--port",
+            str(port),
+            "--language",
+            language,
+            "--daemon-url",
+            daemon_url,
+        ]
+    )
+    logger.info("Started 0G realtime backend on %s:%d for app-controller launch", host, port)
+    return process
+
+
 def main() -> None:
     """Entrypoint for the Reachy Mini conversation app."""
     args, _ = parse_args()
@@ -88,7 +138,9 @@ def run(
     from ante.moves import MovementManager
     from ante.config import (
         HF_LOCAL_CONNECTION_MODE,
+        config,
         set_instance_path,
+        parse_hf_direct_target,
         get_hf_connection_selection,
         resolve_app_timeout_minutes,
         refresh_runtime_config_from_env,
@@ -152,6 +204,18 @@ def run(
             logger.error(f"Unexpected error during robot initialization: {type(e).__name__}: {e}")
             logger.error("Please check your configuration and try again.")
             sys.exit(1)
+
+    controller_zero_g_backend: subprocess.Popen[bytes] | None = None
+    hf_connection_selection = get_hf_connection_selection()
+    if app_stop_event is not None and hf_connection_selection.mode == HF_LOCAL_CONNECTION_MODE:
+        host, port = parse_hf_direct_target(hf_connection_selection.direct_ws_url)
+        controller_zero_g_backend = _start_controller_zero_g_backend(
+            host,
+            port,
+            config.REALTIME_TRANSCRIPTION_LANGUAGE,
+            f"http://{robot.client.host}:{robot.client.port}",
+            logger,
+        )
 
     app_lifecycle.wake_up_if_sleeping(robot, logger)
 
@@ -323,6 +387,14 @@ def run(
     finally:
         if own_ui_server is not None:
             own_ui_server.should_exit = True
+
+        if controller_zero_g_backend is not None and controller_zero_g_backend.poll() is None:
+            controller_zero_g_backend.terminate()
+            try:
+                controller_zero_g_backend.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                logger.warning("0G realtime backend ignored terminate; killing")
+                controller_zero_g_backend.kill()
 
         # Stop the motion writes without changing the robot's posture. If
         # the shutdown came from the voice go_to_sleep tool the robot is
