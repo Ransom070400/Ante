@@ -11,6 +11,10 @@ default_tools = [
   "go_to_sleep",
   "remember",
   "forget",
+  "who_is_here",
+  "enroll_person",
+  "remember_about_person",
+  "forget_person",
   "head_tracking",
 ]
 +++
