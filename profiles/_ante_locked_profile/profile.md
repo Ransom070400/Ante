@@ -12,6 +12,10 @@ default_tools = [
   "sweep_look",
   "remember",
   "forget",
+  "who_is_here",
+  "enroll_person",
+  "remember_about_person",
+  "forget_person",
   "head_tracking",
 ]
 +++
