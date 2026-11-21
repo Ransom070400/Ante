@@ -22,6 +22,7 @@ from ante.utils import (
     setup_logger,
     log_connection_troubleshooting,
 )
+from ante.people import create_identity
 
 
 if TYPE_CHECKING:
@@ -227,6 +228,8 @@ def run(
         instance_path=instance_path,
         camera_enabled=not args.no_camera,
     )
+    if deps.camera_enabled:
+        deps.identity = create_identity(robot, instance_path)
 
     def build_handler(startup_voice: Optional[str] = None) -> ConversationHandler:
         """Build a Hugging Face realtime handler for the current runtime config."""
@@ -401,6 +404,8 @@ def run(
         # already in the sleep pose; on a plain stop it stays awake and
         # the daemon returns it to neutral once the process exits.
         movement_manager.stop(reset_to_neutral=False)
+        if deps.identity is not None:
+            deps.identity.close()
         try:
             robot.disable_wobbling()
         except Exception as e:

@@ -22,6 +22,8 @@ from ante.tools.tool_constants import SystemTool
 
 
 if TYPE_CHECKING:
+    from cheta import Identity
+
     from ante.mcp_client import RemoteMcpToolClient
     from ante.tools.background_tool_manager import BackgroundToolManager
 
@@ -44,6 +46,7 @@ class ToolDependencies:
     camera_enabled: bool = False
     motion_duration_s: float = 1.0
     go_to_sleep: Callable[[], dict[str, Any]] | None = None
+    identity: "Identity | None" = None
 
 
 class ToolSpec(TypedDict):
