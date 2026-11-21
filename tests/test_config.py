@@ -20,3 +20,14 @@ def test_resolve_app_timeout_minutes(monkeypatch, raw_value, expected) -> None:
     monkeypatch.setenv(config.APP_TIMEOUT_MINUTES_ENV, raw_value)
 
     assert config.resolve_app_timeout_minutes() == expected
+
+
+@pytest.mark.parametrize("raw_value, expected", [(None, False), ("true", True), ("off", False)])
+def test_greet_people_is_off_unless_enabled(monkeypatch, raw_value, expected) -> None:
+    """Greeting people needs an explicit opt-in."""
+    if raw_value is None:
+        monkeypatch.delenv(config.GREET_PEOPLE_ENV, raising=False)
+    else:
+        monkeypatch.setenv(config.GREET_PEOPLE_ENV, raw_value)
+
+    assert config.greet_people_enabled() is expected

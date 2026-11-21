@@ -127,6 +127,14 @@ def _env_flag(name: str, default: bool = False) -> bool:
     return default
 
 
+GREET_PEOPLE_ENV = "ANTE_GREET_PEOPLE"
+
+
+def greet_people_enabled() -> bool:
+    """Return whether Ante should greet enrolled people when they arrive (off by default)."""
+    return _env_flag(GREET_PEOPLE_ENV)
+
+
 APP_TIMEOUT_MINUTES_ENV = "REACHY_MINI_APP_TIMEOUT_MINUTES"
 DEFAULT_APP_TIMEOUT_MINUTES = 1440.0
 

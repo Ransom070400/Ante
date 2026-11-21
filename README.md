@@ -173,6 +173,7 @@ set off by a television in the background. Reading one REST value cannot.
 | `HF_REALTIME_CONNECTION_MODE` | Must be `local` so the app uses this backend |
 | `HF_REALTIME_WS_URL` | Where `ante-0g-server` is listening |
 | `REACHY_MINI_CUSTOM_PROFILE` | Ante's personality, from `profiles/` |
+| `ANTE_GREET_PEOPLE` | `true` makes Ante greet enrolled people by name when they walk up, mentioning something it remembers. Keeps face recognition running, so it is off by default |
 | `ANTE_PIPER_VOICE` | Piper `.onnx` voice file. Without it, the server falls back to macOS `say` for laptop development |
 
 ## Known characteristics

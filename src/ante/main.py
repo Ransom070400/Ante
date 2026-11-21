@@ -22,7 +22,7 @@ from ante.utils import (
     setup_logger,
     log_connection_troubleshooting,
 )
-from ante.people import create_identity
+from ante.people import PersonGreeter, create_identity
 
 
 if TYPE_CHECKING:
@@ -141,6 +141,7 @@ def run(
         HF_LOCAL_CONNECTION_MODE,
         config,
         set_instance_path,
+        greet_people_enabled,
         parse_hf_direct_target,
         get_hf_connection_selection,
         resolve_app_timeout_minutes,
@@ -349,6 +350,11 @@ def run(
     except Exception as e:
         logger.error("Failed to initialize tools: %s", e)
         sys.exit(1)
+
+    if deps.identity is not None and greet_people_enabled():
+        PersonGreeter(deps.identity, stream_manager.say_when_quiet)
+        deps.identity.start()
+        logger.info("Greeting enrolled people when they arrive")
 
     # Each async service → its own thread/loop
     movement_manager.start()
