@@ -121,6 +121,25 @@ refuses everything afterwards with `required minimum is 1.003071 0G` — the res
 the fee that first request just incurred. Give each provider at least 1 0G of headroom
 on top of its reserve.
 
+## Remembering people
+
+Ante can recognise people by face and remember facts about them, using
+[cheta](https://github.com/Ransom070400/cheta). Everything stays on the device: only
+encrypted face signatures and memory text are stored, never photos, and nothing is
+enrolled without the person agreeing out loud.
+
+```bash
+uv pip install --python .venv/bin/python -e ".[people]"
+python -m cheta.models   # one-time model download
+```
+
+Without the extra, Ante runs as before and the people tools report that they are
+unavailable. The tools are `who_is_here`, `enroll_person`, `remember_about_person` and
+`forget_person`, enabled in the default and locked profiles; add them to a profile's
+`default_tools` to use them elsewhere. Data lives in `people/` next to the app's
+memory file. Recognition is by face only, because the conversation loop owns the
+microphone, and it needs the camera (`--no-camera` disables it).
+
 ## Running
 
 Start the 0G backend first, then the app:
