@@ -22,7 +22,6 @@ from ante.utils import (
     setup_logger,
     log_connection_troubleshooting,
 )
-from ante.people import PersonGreeter, create_identity
 
 
 if TYPE_CHECKING:
@@ -147,6 +146,7 @@ def run(
         resolve_app_timeout_minutes,
         refresh_runtime_config_from_env,
     )
+    from ante.people import PersonGreeter, create_identity
     from ante.startup_settings import (
         StartupSettings,
         load_startup_settings_into_runtime,

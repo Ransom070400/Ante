@@ -1,12 +1,11 @@
 """Tests for the optional cheta-backed people memory."""
 
-import sys
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 
-from ante.people import PersonGreeter, find_person, create_identity
+from ante.people import PersonGreeter, find_person
 
 
 def _identity_with(*people: SimpleNamespace) -> MagicMock:
@@ -26,12 +25,6 @@ def test_find_person_rejects_missing_or_ambiguous_names(matches: tuple[SimpleNam
     """No match and several matches both raise, so a tool never acts on the wrong person."""
     with pytest.raises(LookupError):
         find_person(_identity_with(*matches), "Sam")
-
-
-def test_create_identity_is_disabled_without_cheta(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A missing optional dependency disables people memory instead of failing startup."""
-    monkeypatch.setitem(sys.modules, "cheta", None)
-    assert create_identity(MagicMock()) is None
 
 
 def _greeter(say_result: bool = True, now: list[float] | None = None) -> tuple[PersonGreeter, MagicMock, MagicMock]:

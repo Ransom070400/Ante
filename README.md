@@ -128,15 +128,15 @@ Ante can recognise people by face and remember facts about them, using
 encrypted face signatures and memory text are stored, never photos, and nothing is
 enrolled without the person agreeing out loud.
 
+cheta is installed with Ante. Download its models once:
+
 ```bash
-uv pip install --python .venv/bin/python -e ".[people]"
-python -m cheta.models   # one-time model download
+python -m cheta.models
 ```
 
-Without the extra, Ante runs as before and the people tools report that they are
-unavailable. The tools are `who_is_here`, `enroll_person`, `remember_about_person` and
-`forget_person`, enabled in the default and locked profiles; add them to a profile's
-`default_tools` to use them elsewhere. Data lives in `people/` next to the app's
+The tools are `who_is_here`, `enroll_person`, `remember_about_person` and
+`forget_person`, enabled in every bundled profile; add them to a custom profile's
+`default_tools` to use them there. Data lives in `people/` next to the app's
 memory file. Recognition is by face only, because the conversation loop owns the
 microphone, and it needs the camera (`--no-camera` disables it).
 
