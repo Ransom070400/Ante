@@ -11,6 +11,7 @@ import logging
 from typing import Any, List, Optional
 from pathlib import Path
 from collections.abc import Callable
+from concurrent.futures import Future
 
 import numpy as np
 
@@ -96,6 +97,7 @@ LEGACY_STARTUP_ENV_NAMES = (
     "REACHY_MINI_VOICE_OVERRIDE",
 )
 BACKEND_RETRY_DELAY_SECONDS = 5.0
+QUIET_BEFORE_SAY_S = 10.0
 
 
 class LocalStream:
@@ -219,6 +221,23 @@ class LocalStream:
     def seconds_since_activity(self) -> float:
         """Seconds since the live handler last saw conversation activity."""
         return time.monotonic() - self.handler.last_activity_time
+
+    def say_when_quiet(self, text: str) -> bool:
+        """Have the model voice ``text`` from any thread, unless a conversation is under way.
+
+        Returns False without speaking when there is no session or there was activity in the last
+        ``QUIET_BEFORE_SAY_S`` seconds.
+        """
+        loop = self._asyncio_loop
+        if loop is None or not self.handler._is_connected() or self.seconds_since_activity() < QUIET_BEFORE_SAY_S:
+            return False
+
+        def log_failure(future: Future[None]) -> None:
+            if future.exception() is not None:
+                logger.warning("Could not voice %r: %s", text, future.exception())
+
+        asyncio.run_coroutine_threadsafe(self.handler.say(text), loop).add_done_callback(log_failure)
+        return True
 
     def _read_env_lines(self, env_path: Path) -> list[str]:
         """Load env file contents or a template as a list of lines."""
